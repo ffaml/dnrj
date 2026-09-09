@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电脑软件下载 · 分类标签</title>
+    <!-- Tailwind + FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: #f3f4f6;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        .download-card {
+            transition: all 0.2s ease;
+        }
+        .download-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+        }
+        .page-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+            z-index: 2;
+        }
+        .fade-in {
+            animation: fadeUp 0.35s ease-out;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .clear-btn {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .clear-btn:hover {
+            color: #1f2937;
+        }
+        /* 分类标签样式 */
+        .tag-btn {
+            transition: all 0.2s;
+            border-radius: 9999px;
+        }
+        .tag-btn.active-tag {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+        .tag-btn.active-tag:hover {
+            background-color: #4338ca;
+        }
+        .tag-btn:not(.active-tag):hover {
+            background-color: #e5e7eb;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-10 px-4">
+
+    <!-- 头部 -->
+    <header class="mb-6 text-center">
+        <h1 class="text-3xl font-bold text-gray-800 mb-1">
+            <i class="fa-solid fa-laptop-code text-indigo-600 mr-2"></i>电脑软件资源库
+        </h1>
+        <p class="text-gray-500 text-sm">精选常用工具 · 高速下载通道</p>
+    </header>
+
+    <!-- 搜索框 + 分类标签 -->
+    <div class="w-full max-w-2xl mb-4">
+        <!-- 搜索框 -->
+        <div class="relative mb-3">
+            <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <input type="text" id="searchInput" 
+                   class="w-full pl-12 pr-12 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all text-gray-700 placeholder-gray-400"
+                   placeholder="搜索标题、描述或标签...">
+            <div id="clearBtn" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 hidden clear-btn">
+                <i class="fa-solid fa-circle-xmark text-lg"></i>
+            </div>
+        </div>
+
+        <!-- 分类标签区域 -->
+        <div class="flex flex-wrap gap-2 items-center">
+            <span class="text-xs font-medium text-gray-500 mr-1"><i class="fa-regular fa-folder-open mr-1"></i>分类：</span>
+            <button class="tag-btn active-tag px-4 py-1.5 text-sm font-medium border border-transparent bg-indigo-600 text-white hover:bg-indigo-700 transition" data-tag="all">全部</button>
+            <button class="tag-btn px-4 py-1.5 text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition" data-tag="下载工具">下载工具</button>
+            <button class="tag-btn px-4 py-1.5 text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition" data-tag="办公软件">办公软件</button>
+            <button class="tag-btn px-4 py-1.5 text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition" data-tag="系统工具">系统工具</button>
+            <button class="tag-btn px-4 py-1.5 text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition" data-tag="影音播放">影音播放</button>
+        </div>
+    </div>
+
+    <!-- 主卡片 -->
+    <main class="w-full max-w-2xl bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+
+        <!-- 列表容器 -->
+        <div id="listContainer" class="divide-y divide-gray-100 min-h-[280px] bg-white">
+            <!-- 动态渲染 -->
+        </div>
+
+        <!-- 分页控制区 -->
+        <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        显示第 <span class="font-medium" id="startIndex">1</span> 到 <span class="font-medium" id="endIndex">5</span> 条，
+                        共 <span class="font-medium" id="totalItems">0</span> 条结果
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" id="paginationNav">
+                        <!-- JS 生成 -->
+                    </nav>
+                </div>
+            </div>
+            <!-- 移动端分页 -->
+            <div class="flex items-center justify-between w-full sm:hidden">
+                <button id="prevMobile" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">上一页</button>
+                <span class="text-sm text-gray-700">第 <span id="currentPageMobile">1</span> 页</span>
+                <button id="nextMobile" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">下一页</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-8 text-center text-gray-400 text-xs">
+        &copy; 2026 软件资源分享平台. All rights reserved.
+    </footer>
+
+    <script>
+        (function() {
+            // ---------- 原始数据 (增加 category 字段) ----------
+            const rawData = [
+                { name: "迅雷极速版", category: "下载工具", url: "https://4002681192.share.123pan.cn/123pan/h4tzMh-eJYEd?pwd=1111#" },
+                { name: "IDM 下载器", category: "下载工具", url: "https://example.com/idm" },
+                { name: "WPS Office", category: "办公软件", url: "https://example.com/wps" },
+                { name: "Microsoft Word", category: "办公软件", url: "https://example.com/word" },
+                { name: "CCleaner", category: "系统工具", url: "https://example.com/ccleaner" },
+                { name: "Everything", category: "系统工具", url: "https://example.com/everything" },
+                { name: "PotPlayer", category: "影音播放", url: "https://example.com/potplayer" },
+                { name: "迅雷极速版", category: "下载工具", url: "https://4002681192.share.123pan.cn/123pan/h4tzMh-eJYEd?pwd=1111#" },
+                { name: "迅雷极速版", category: "下载工具", url: "https://4002681192.share.123pan.cn/123pan/h4tzMh-eJYEd?pwd=1111#" },
+                { name: "Foxit Reader", category: "办公软件", url: "https://example.com/foxit" },
+                { name: "WinRAR", category: "系统工具", url: "https://example.com/winrar" }
+            ];
+
+            // 配置
+            const ITEMS_PER_PAGE = 5;
+            let currentPage = 1;
+            let currentTag = 'all';        // 当前选中的分类
+            let filteredData = [...rawData];
+            let totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE) || 1;
+
+            // DOM 元素
+            const listContainer = document.getElementById('listContainer');
+            const paginationNav = document.getElementById('paginationNav');
+            const startIndexEl = document.getElementById('startIndex');
+            const endIndexEl = document.getElementById('endIndex');
+            const totalItemsEl = document.getElementById('totalItems');
+            const currentPageMobile = document.getElementById('currentPageMobile');
+            const prevMobile = document.getElementById('prevMobile');
+            const nextMobile = document.getElementById('nextMobile');
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearBtn');
+            const tagBtns = document.querySelectorAll('.tag-btn');
+
+            // ---------- 核心过滤函数 (分类 + 搜索) ----------
+            function filterData() {
+                const keyword = searchInput.value.trim().toLowerCase();
+
+                // 先按分类过滤
+                let temp = rawData;
+                if (currentTag !== 'all') {
+                    temp = temp.filter(item => item.category === currentTag);
+                }
+
+                // 再按关键词过滤（匹配 name 或 category 或 "123Pan"）
+                if (keyword) {
+                    temp = temp.filter(item => {
+                        const name = item.name.toLowerCase();
+                        const cat = item.category.toLowerCase();
+                        const source = '123Pan云盘'.toLowerCase();
+                        const tag = '123Pan'.toLowerCase();
+                        return name.includes(keyword) || cat.includes(keyword) || source.includes(keyword) || tag.includes(keyword);
+                    });
+                }
+
+                filteredData = temp;
+                totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE) || 1;
+                // 如果当前页超出总页数，重置到第一页
+                if (currentPage > totalPages) currentPage = 1;
+            }
+
+            // ---------- 渲染 ----------
+            function renderList() {
+                const start = (currentPage - 1) * ITEMS_PER_PAGE;
+                const end = Math.min(start + ITEMS_PER_PAGE, filteredData.length);
+                const pageData = filteredData.slice(start, end);
+
+                listContainer.innerHTML = '';
+                if (pageData.length === 0) {
+                    listContainer.innerHTML = `<div class="p-8 text-center text-gray-400 text-sm">没有匹配的软件</div>`;
+                    return;
+                }
+
+                pageData.forEach((item, idx) => {
+                    const globalIndex = start + idx + 1;
+                    const card = document.createElement('div');
+                    card.className = 'download-card p-4 flex items-center justify-between hover:bg-gray-50/70 fade-in';
+                    card.style.animationDelay = `${idx * 0.05}s`;
+                    // 显示分类标签小标识
+                    const catColors = {
+                        '下载工具': 'bg-blue-100 text-blue-700',
+                        '办公软件': 'bg-green-100 text-green-700',
+                        '系统工具': 'bg-purple-100 text-purple-700',
+                        '影音播放': 'bg-rose-100 text-rose-700'
+                    };
+                    const catColor = catColors[item.category] || 'bg-gray-100 text-gray-600';
+                    card.innerHTML = `
+                        <div class="flex items-center space-x-3 min-w-0 flex-1">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                                <i class="fa-solid fa-cloud-arrow-down"></i>
+                            </div>
+                            <div class="truncate">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-sm font-semibold text-gray-900 truncate">${globalIndex}. ${item.name}</h3>
+                                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full ${catColor} shrink-0">${item.category}</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-0.5">来源: 123Pan云盘</p>
+                            </div>
+                        </div>
+                        <a href="${item.url}" target="_blank" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors whitespace-nowrap ml-2 shrink-0">
+                            <i class="fa-solid fa-download mr-1.5"></i> 下载
+                        </a>
+                    `;
+                    listContainer.appendChild(card);
+                });
+            }
+
+            function renderPagination() {
+                paginationNav.innerHTML = '';
+                if (totalPages === 0) {
+                    const emptyBtn = document.createElement('span');
+                    emptyBtn.className = 'px-4 py-2 text-sm text-gray-400';
+                    emptyBtn.innerText = '无分页';
+                    paginationNav.appendChild(emptyBtn);
+                    updateMobileButtons();
+                    return;
+                }
+
+                // 上一页
+                const prevBtn = document.createElement('button');
+                prevBtn.innerHTML = '<span class="sr-only">Previous</span><i class="fa-solid fa-chevron-left h-4 w-4"></i>';
+                prevBtn.className = `relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`;
+                prevBtn.disabled = currentPage === 1;
+                prevBtn.onclick = () => changePage(currentPage - 1);
+                paginationNav.appendChild(prevBtn);
+
+                // 页码
+                for (let i = 1; i <= totalPages; i++) {
+                    const btn = document.createElement('button');
+                    btn.innerText = i;
+                    btn.className = `page-btn relative inline-flex items-center px-4 py-2 border text-sm font-medium ${i === currentPage ? 'active' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`;
+                    btn.onclick = () => changePage(i);
+                    paginationNav.appendChild(btn);
+                }
+
+                // 下一页
+                const nextBtn = document.createElement('button');
+                nextBtn.innerHTML = '<span class="sr-only">Next</span><i class="fa-solid fa-chevron-right h-4 w-4"></i>';
+                nextBtn.className = `relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`;
+                nextBtn.disabled = currentPage === totalPages;
+                nextBtn.onclick = () => changePage(currentPage + 1);
+                paginationNav.appendChild(nextBtn);
+
+                updateMobileButtons();
+            }
+
+            function updateMobileButtons() {
+                prevMobile.disabled = currentPage === 1 || totalPages === 0;
+                nextMobile.disabled = currentPage === totalPages || totalPages === 0;
+                prevMobile.className = `relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${(currentPage === 1 || totalPages === 0) ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-700 bg-white hover:bg-gray-50'}`;
+                nextMobile.className = `relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${(currentPage === totalPages || totalPages === 0) ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-700 bg-white hover:bg-gray-50'}`;
+                currentPageMobile.innerText = currentPage;
+            }
+
+            function updateInfo() {
+                const total = filteredData.length;
+                totalItemsEl.innerText = total;
+                if (total === 0) {
+                    startIndexEl.innerText = '0';
+                    endIndexEl.innerText = '0';
+                    return;
+                }
+                const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+                const end = Math.min(currentPage * ITEMS_PER_PAGE, total);
+                startIndexEl.innerText = start;
+                endIndexEl.innerText = end;
+            }
+
+            // 统一刷新
+            function refresh() {
+                filterData();
+                renderList();
+                renderPagination();
+                updateInfo();
+            }
+
+            function changePage(page) {
+                if (page < 1 || page > totalPages) return;
+                currentPage = page;
+                renderList();
+                renderPagination();
+                updateInfo();
+                document.querySelector('main').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // ---------- 搜索 ----------
+            function applySearch() {
+                const keyword = searchInput.value.trim();
+                if (keyword.length > 0) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                }
+                currentPage = 1;
+                refresh();
+            }
+
+            function clearSearch() {
+                searchInput.value = '';
+                clearBtn.classList.add('hidden');
+                currentPage = 1;
+                refresh();
+                searchInput.focus();
+            }
+
+            // ---------- 分类标签切换 ----------
+            function setTag(tag) {
+                currentTag = tag;
+                // 更新按钮激活状态
+                tagBtns.forEach(btn => {
+                    const btnTag = btn.dataset.tag;
+                    if (btnTag === tag) {
+                        btn.classList.add('active-tag');
+                        btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                        btn.classList.add('bg-indigo-600', 'text-white', 'border-transparent');
+                    } else {
+                        btn.classList.remove('active-tag', 'bg-indigo-600', 'text-white', 'border-transparent');
+                        btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                    }
+                });
+                currentPage = 1;
+                refresh();
+            }
+
+            // ---------- 事件绑定 ----------
+            searchInput.addEventListener('input', applySearch);
+            clearBtn.addEventListener('click', clearSearch);
+            prevMobile.addEventListener('click', () => changePage(currentPage - 1));
+            nextMobile.addEventListener('click', () => changePage(currentPage + 1));
+
+            tagBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tag = this.dataset.tag;
+                    setTag(tag);
+                });
+            });
+
+            // ---------- 初始化 ----------
+            function init() {
+                // 默认选中 "全部"
+                currentTag = 'all';
+                tagBtns.forEach(btn => {
+                    if (btn.dataset.tag === 'all') {
+                        btn.classList.add('active-tag');
+                        btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                        btn.classList.add('bg-indigo-600', 'text-white', 'border-transparent');
+                    } else {
+                        btn.classList.remove('active-tag', 'bg-indigo-600', 'text-white', 'border-transparent');
+                        btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                    }
+                });
+                searchInput.value = '';
+                clearBtn.classList.add('hidden');
+                currentPage = 1;
+                refresh();
+            }
+
+            init();
+
+            // 暴露
+            window.changePage = changePage;
+            window.setTag = setTag;
+        })();
+    </script>
+</body>
+</html>
